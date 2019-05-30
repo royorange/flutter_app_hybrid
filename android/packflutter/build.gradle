@@ -1,0 +1,77 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 28
+
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+def releaseFlutterJar = "${project.projectDir.getAbsolutePath()}/flutter/engine/android-arm-release/flutter.jar"
+
+project.android.buildTypes.each {
+    addFlutterJarImplementationDependency(project,releaseFlutterJar)
+}
+project.android.buildTypes.whenObjectAdded {
+    addFlutterJarImplementationDependency(project,releaseFlutterJar)
+}
+
+private static void addFlutterJarImplementationDependency(Project project,releaseFlutterJar) {
+    project.dependencies {
+        String configuration
+        if (project.getConfigurations().findByName("implementation")) {
+            configuration = "implementation"
+        } else {
+            configuration = "compile"
+        }
+        add(configuration, project.files {
+            releaseFlutterJar
+        })
+    }
+}
+
+afterEvaluate {
+    android.libraryVariants.all { def variant ->
+        // merge flutter assets
+        def flutterAsset ="${project.projectDir.getAbsolutePath()}/flutter/assets/release/"
+        def mergeFlutterAssets = project.tasks.create(name: "mergeFlutterAssets${variant.name.capitalize()}", type: Copy) {
+            dependsOn variant.mergeAssets
+            from (flutterAsset){
+                include "flutter_assets/**" // the working dir and its files
+                include "vm_snapshot_data"
+                include "vm_snapshot_instr"
+                include "isolate_snapshot_data"
+                include "isolate_snapshot_instr"
+            }
+            into variant.mergeAssets.outputDir
+        }
+        variant.outputs[0].processResources.dependsOn(mergeFlutterAssets)
+    }
+
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.1.0-alpha03'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.1.2-alpha02'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0-alpha02'
+}
