@@ -33,4 +33,7 @@ mkdir -p android/packflutter/flutter/assets/release/flutter_assets && cp -r buil
 echo 'Build flutter to aar'
 cd android
 ./gradlew :app:clean :packflutter:build
-git init
+
+# aar路径
+output=$(pwd)/packflutter/outputs/aar
+echo 'output: '$output
