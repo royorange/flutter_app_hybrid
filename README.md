@@ -17,3 +17,6 @@ It's possible to use gitsubmodule to manage android/ios native project.
 # dev mode
 ./build_flutter dev
 ```
+If you want to debug in flutter project, run `flutter run`(add `--flavor` if you need )  
+Some native project may change the output of the apk, you have to `adb install` then run `flutter attach`, unless you modify the
+flutter_tools
